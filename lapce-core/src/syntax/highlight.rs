@@ -5,7 +5,6 @@
  *
  * Much of the code in this file is modified from [helix](https://github.com/helix-editor/helix)'s implementation of their syntax highlighting, which is under the MPL.
  */
-
 use std::{
     borrow::Cow,
     cell::RefCell,
@@ -384,9 +383,7 @@ pub(crate) struct HighlightIter<'a> {
 pub(crate) struct HighlightIterLayer<'a> {
     pub(crate) _tree: Option<Tree>,
     pub(crate) cursor: QueryCursor,
-    pub(crate) captures: RefCell<
-        std::iter::Peekable<QueryCaptures<'a, 'a, RopeProvider<'a>, &'a [u8]>>,
-    >,
+    pub(crate) captures: Vec<QueryCaptures<'a, 'a, RopeProvider<'a>, &'a [u8]>>,
     pub(crate) config: &'a HighlightConfiguration,
     pub(crate) highlight_end_stack: Vec<usize>,
     pub(crate) scope_stack: Vec<LocalScope<'a>>,
@@ -407,8 +404,8 @@ impl HighlightIterLayer<'_> {
         let depth = -(self.depth as isize);
         let next_start = self
             .captures
-            .borrow_mut()
-            .peek()
+            .get(self.capture_index)
+            .and_then(|c| c.peek())
             .map(|(m, i)| m.captures[*i].node.start_byte());
         let next_end = self.highlight_end_stack.last().cloned();
         match (next_start, next_end) {
